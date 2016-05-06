@@ -4,8 +4,8 @@ OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o
 DEVICE=STM32F429xx
 
 LINKERSCRIPT=../STM32Cube_FW_F4_V1.11.0/Projects/STM32F429I-Discovery/Templates/TrueSTUDIO/STM32F429I_DISCO/STM32F429ZI_FLASH.ld
-CMSIS_DEVICE_INCLUDE=~/cortex/STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-CMSIS_CORE_INCLUDE=~/cortex/STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include
+CMSIS_DEVICE_INCLUDE=../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
+CMSIS_CORE_INCLUDE=../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include
 
 deafult: test0 
 
