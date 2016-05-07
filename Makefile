@@ -15,16 +15,16 @@ main.hex : main.elf
 	arm-none-eabi-objcopy -Oihex main.elf main.hex
 
 main.elf : $(OBJS) 
-		$(COMPILER) -mcpu=cortex-m4 -mlittle-endian -mthumb -D $(DEVICE)  -T $(LINKERSCRIPT)  -Wl,--gc-sections $(OBJS) -o main.elf
+		$(COMPILER) -mcpu=cortex-m4 -mlittle-endian -mthumb -D $(DEVICE)  -T $(LINKERSCRIPT)  -Wl,--gc-sections $(OBJS) -g3 -o main.elf
 
 main.o : main.c
-	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -c main.c -o main.o 
+	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -g3 -c main.c -o main.o 
 
 startup_stm32f429xx.o : startup_stm32f429xx.s
-	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -c startup_stm32f429xx.s -o startup_stm32f429xx.o
+	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -g3 -c startup_stm32f429xx.s -o startup_stm32f429xx.o
 
 system_stm32f4xx.o : system_stm32f4xx.c
-	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -c system_stm32f4xx.c -o system_stm32f4xx.o 
+	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -g3 -c system_stm32f4xx.c -o system_stm32f4xx.o 
 
 clean :
 	rm $(OBJS)
