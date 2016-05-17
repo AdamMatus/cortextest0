@@ -1,0 +1,11 @@
+selectp -t 0 
+send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m  "vim main.c" C-m
+
+splitw -h -p 30
+send-keys "sudo minicom"
+
+splitw -v -p 95
+send-keys "openocd -f /usr/share/openocd/scripts/board/stm32f429discovery.cfg" C-m
+
+splitw -v -p 92
+send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m
