@@ -1,5 +1,5 @@
 selectp -t 0 
-send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m  "vim main.c" C-m
+send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m  "vim main.c" C-m ":tabnew ./system_stm32f4xx.c" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f429xx.h" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include/core_cm4.h" C-m
 
 splitw -h -p 30
 send-keys "sudo minicom"
