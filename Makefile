@@ -1,5 +1,5 @@
 COMPILER=arm-none-eabi-gcc
-OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o
+OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o
 
 DEVICE=STM32F429xx
 
@@ -26,6 +26,10 @@ startup_stm32f429xx.o : startup_stm32f429xx.s
 
 system_stm32f4xx.o : system_stm32f4xx.c
 	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -g3 -c system_stm32f4xx.c -o system_stm32f4xx.o 
+
+usart.o : usart.c
+	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -D $(DEVICE) -Os -g3 -c usart.c -o usart.o 
+
 
 clean :
 	rm $(OBJS)

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <core_cm4.h>
 
-const uint16_t LOG_TIME_SIZE_FORMAT = 7;
+#include "usart.h"
 
 void TIM1_UP_TIM10_IRQHandler();
 void put_log_mesg(char* mesg);
@@ -10,9 +10,6 @@ volatile uint32_t systemTicks;
 
 unsigned int onoffleds;
 volatile uint32_t LOG_LED_FLAG;
-char recived_char;
-
-
 
 int main()
 {
@@ -27,7 +24,6 @@ int main()
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOGEN;
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
 	//
-	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 	//TIM10 clock enabling
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
 	// set port to output
@@ -43,11 +39,6 @@ int main()
 	//
 	//stop timers while in breakpoint in debug
   DBGMCU->APB2FZ |= DBGMCU_APB2_FZ_DBG_TIM10_STOP;
-	//USART2 -> SR ;
-	USART2 -> CR1 |= USART_CR1_UE;
-	USART2 -> CR2 |= 0x00;
-	USART2 -> BRR = (104 << 4) | 3; // prescaler set to divide by 104,1875
-
 	// TIM10 config
 	TIM10 -> ARR = 1000; // 1000  milliseconds
 	TIM10 -> PSC = 16000 - 1; // PCLK:16 MHz / 16 000 = 1 kHz
@@ -55,9 +46,9 @@ int main()
 	TIM10 -> CR1 |= TIM_CR1_ARPE	+ TIM_CR1_CEN; // control register
 	TIM10 -> EGR = 1; // generate update event
 	//
-	
-	USART2 ->CR1 |=  USART_CR1_TCIE + USART_CR1_RXNEIE +  USART_CR1_RE;
+	config_usart();
 
+	put_log_mesg("main loop starting in here\n");
 
 	while(1){
 		if(LOG_LED_FLAG & 0x01){
@@ -84,58 +75,9 @@ void TIM1_UP_TIM10_IRQHandler()
 	}
 	TIM10 -> SR = 0x00;
 }	
-
-void USART2_IRQHandler()
-{
-	uint32_t stat_reg = USART2->SR ; 
-	if(stat_reg &  USART_SR_TC){
-		USART2 -> DR = '\r';
-		USART2 -> CR1 &= ~USART_CR1_TE;
-	}	
 	
-	if(stat_reg &  USART_SR_RXNE){
-		recived_char = USART2->DR;
-	}
-}	
 
 void SysTick_Handler()
 {
 	systemTicks++;
-}
-
-void put_log_mesg(char* mesg){
-	//put clock log
-	char data_string[LOG_TIME_SIZE_FORMAT + 1]; // additional sign ' '
-	uint32_t sys_tick_copy = systemTicks/1000; //seconds asumming that stick is 1ms
-
-	uint32_t index = 0;
-	data_string[index++] = ' '; // separator at the end of the time ( xD )
-
-	uint32_t modulosixty;
-	for(uint32_t i = 0; i<2; i++){
-		modulosixty = sys_tick_copy%60;
-		data_string[index++] = '0' + modulosixty%10;
-  	modulosixty/=10;
-  	data_string[index++] = '0' + modulosixty;
-		sys_tick_copy/=60; //minutes after i=0 and hours after i=1
-		data_string[index++] = ':';
-	}
-	
-	for(uint32_t i = 0; i < LOG_TIME_SIZE_FORMAT - 6; i++){ // 6 - six signes generated yet
-		data_string[index++] = '0' + sys_tick_copy%10;
-		sys_tick_copy/=10;
-	}	
-
- 	USART2 -> CR1 |= USART_CR1_TE ;
-
-	while(index--){ // print backfoward, fuck script kiddies im the hacker
-		while( !(USART2->SR & USART_SR_TXE) );
-		USART2 -> DR = data_string[index];
-	}
-
-	while(*mesg){
-		while( !(USART2->SR & USART_SR_TXE) );
-		USART2 -> DR = *mesg;
-		mesg++;
-	}
 }
