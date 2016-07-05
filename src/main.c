@@ -48,7 +48,7 @@ int main()
 	//
 	config_usart();
 
-	put_log_mesg("main loop starting in here\n");
+	put_log_mesg("main loop starting in here\n\r"); 
 
 	while(1){
 		if(LOG_LED_FLAG & 0x01){

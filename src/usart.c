@@ -1,7 +1,8 @@
 #include "usart.h"
 
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
-char recived_char;
+unsigned int rs_index;
+char received_string[128];
 
 void config_usart(){
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
@@ -52,13 +53,24 @@ void put_log_mesg(char* mesg){
 
 void USART2_IRQHandler()
 {
+
 	uint32_t stat_reg = USART2->SR ; 
+	// tx handling
 	if(stat_reg &  USART_SR_TC){
 		USART2 -> DR = '\r';
 		USART2 -> CR1 &= ~USART_CR1_TE;
-	}	
-	
-	if(stat_reg &  USART_SR_RXNE){
-		recived_char = USART2->DR;
 	}
+
+
+	// rx handling
+	if(stat_reg &  USART_SR_RXNE){
+		received_string[rs_index] = USART2->DR;
+		if(received_string[rs_index++] == 0 ){
+			//received_string[rs_index] = 0;
+			rs_index = 0;
+	}
+	
+}
+
+
 }
