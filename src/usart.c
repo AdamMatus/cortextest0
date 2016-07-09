@@ -2,7 +2,7 @@
 
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
 unsigned int rs_index;
-char received_string[128];
+static char received_string[128];
 
 void config_usart(){
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
@@ -68,9 +68,10 @@ void USART2_IRQHandler()
 		if(received_string[rs_index++] == 0 ){
 			//received_string[rs_index] = 0;
 			rs_index = 0;
+		}
 	}
-	
 }
 
-
+char* get_serial_mesg(){
+ return received_string;	
 }

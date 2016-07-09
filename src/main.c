@@ -3,6 +3,7 @@
 #include <core_cm4.h>
 
 #include "usart.h"
+#include "led.h"
 
 void TIM1_UP_TIM10_IRQHandler();
 void put_log_mesg(char* mesg);
@@ -21,13 +22,13 @@ int main()
 
 	//AHB = APB1 = APB2
 	//GPIOG clock enabling, USART2 clock enabling
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOGEN;
 	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
 	//
 	//TIM10 clock enabling
 	RCC->APB2ENR |= RCC_APB2ENR_TIM10EN;
-	// set port to output
-	GPIOG -> MODER |= GPIO_MODER_MODER13_0 + GPIO_MODER_MODER14_0;
+
+	config_leds();
+
 	// set USART2 TX/RX as pins' function
 	GPIOD -> MODER |= GPIO_MODER_MODER5_1 + GPIO_MODER_MODER6_1; 
 	GPIOD -> PUPDR |= GPIO_PUPDR_PUPDR5_0;
@@ -57,18 +58,20 @@ int main()
 		}
 	}
 
-	
 	return 0;
 }
 
 void TIM1_UP_TIM10_IRQHandler()
 {
 	if(TIM10 -> SR & 0x01){
-		if(onoffleds%2)
-			GPIOG -> BSRR |= GPIO_BSRR_BS_13 + GPIO_BSRR_BS_14;
-		else
-			GPIOG -> BSRR |= GPIO_BSRR_BR_13 + GPIO_BSRR_BR_14;
+		if(onoffleds%2){
+			change_led_state(GREEN, ON);
+		}
+		else{
+			change_led_state(GREEN, OFF);
+		}
 
+		toogle_leds(RED_LED_TOOGLE_MASK);
 		onoffleds++;
 
 		LOG_LED_FLAG |= 0x01;
