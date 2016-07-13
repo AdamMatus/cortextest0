@@ -41,7 +41,7 @@ int main()
 	//stop timers while in breakpoint in debug
   DBGMCU->APB2FZ |= DBGMCU_APB2_FZ_DBG_TIM10_STOP;
 	// TIM10 config
-	TIM10 -> ARR = 1000; // 1000  milliseconds
+	TIM10 -> ARR = 5000; // 1000  milliseconds
 	TIM10 -> PSC = 16000 - 1; // PCLK:16 MHz / 16 000 = 1 kHz
 	TIM10 -> DIER |= TIM_DIER_UIE; //
 	TIM10 -> CR1 |= TIM_CR1_ARPE	+ TIM_CR1_CEN; // control register
@@ -51,10 +51,27 @@ int main()
 
 	put_log_mesg("main loop starting in here\n\r"); 
 
+	struct command_list_node serial_cln_echo;
+	serial_cln_echo.chfp = serial_command_echo_handler;
+	serial_cln_echo.command_pattern = "ECHO";
+	serial_cln_echo.next = NULL;
+	add_command_node(&serial_cln_echo);
+
+	struct command_list_node serial_cln_led; 
+	serial_cln_led.chfp = serial_command_led_handler;
+	serial_cln_led.command_pattern = "LED";
+	serial_cln_led.next = NULL;
+	add_command_node(&serial_cln_led);
+
 	while(1){
 		if(LOG_LED_FLAG & 0x01){
 			put_log_mesg("LEDS just TOOGLED! xD\n");
 			LOG_LED_FLAG &= ~0x01;
+		}
+
+		if(new_mesg_flag){
+			parse_serial_command();
+			new_mesg_flag = 0;
 		}
 	}
 

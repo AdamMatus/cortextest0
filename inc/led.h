@@ -31,4 +31,6 @@ inline void toogle_leds(uint32_t mask){
 	GPIOG -> ODR ^= mask;
 }
 
+void serial_command_led_handler(char*, int);
+
 #endif 

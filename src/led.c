@@ -41,4 +41,11 @@ void change_led_state(enum led_id ledid, enum led_action ledact){
 	}
 }
 
+void serial_command_led_handler(char* str_command, int index){
+	str_command[index] = 0; //only to ignore warnings
 
+	change_led_state(GREEN, TOOGLE);
+	change_led_state(RED, TOOGLE);
+
+	return;
+}

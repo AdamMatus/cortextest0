@@ -1,4 +1,5 @@
 #include "usart.h"
+#include <string.h>
 
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
 unsigned int rs_index;
@@ -68,10 +69,67 @@ void USART2_IRQHandler()
 		if(received_string[rs_index++] == 0 ){
 			//received_string[rs_index] = 0;
 			rs_index = 0;
+			new_mesg_flag = 1;
 		}
 	}
 }
 
+
 char* get_serial_mesg(){
  return received_string;	
+}
+
+// Parsing commands from serial inputs
+// every commmand_node in link-list
+// represent search node with string pattern
+//
+
+void parse_serial_command(){
+	char r_str_word[32];	
+	strncpy(r_str_word, received_string, 32);
+	struct command_list_node* cln = serial_command_list.last_cln;
+	if(!cln){
+		put_log_mesg("parse_serial_command: there is no command_list_node");
+		return;
+	}
+
+	int i = 0;
+	char *c = r_str_word;
+	while(c[i]  != ' ') {
+		if(c[i] == cln->command_pattern[i]){
+			i++;
+			continue;
+		}
+		else if(cln->next){
+			cln = cln->next;
+		}
+		else{
+			put_log_mesg("parse_serial_command: no matches for: (1)");
+			put_log_mesg(r_str_word);
+			return;
+		}
+	}
+
+	cln->chfp(r_str_word, ++i);
+	return;
+}
+
+void add_command_node(struct command_list_node* cln){
+	if(serial_command_list.last_cln == NULL){
+		serial_command_list.last_cln = cln;
+		cln->next = NULL;
+	}
+	else{
+		cln->next = serial_command_list.last_cln;
+		serial_command_list.last_cln = cln;
+	}
+}
+
+// ECHO handler
+
+void serial_command_echo_handler(char* r_str,int index){
+	r_str[index] = ' '; // warnings
+
+	put_log_mesg(r_str);
+	return;
 }
