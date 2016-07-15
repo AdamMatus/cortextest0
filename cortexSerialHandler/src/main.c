@@ -6,8 +6,8 @@
 #include <stdio.h>
 
 //C++ standard library
-#include <iostream>
-#include <string>
+//#include <iostream>
+//#include <string>
 
 //POSIX terminal control definitions
 #include <termios.h>

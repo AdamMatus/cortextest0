@@ -94,14 +94,16 @@ void parse_serial_command(){
 	}
 
 	int i = 0;
-	char *c = r_str_word;
-	while(c[i]  != ' ') {
-		if(c[i] == cln->command_pattern[i]){
+	char *c = cln->command_pattern;
+	while(c[i]  != ' ' && c[i] != 0) {
+		if(c[i] == r_str_word[i]){
 			i++;
 			continue;
 		}
 		else if(cln->next){
 			cln = cln->next;
+			c = &(cln->command_pattern[i]);
+			continue;
 		}
 		else{
 			put_log_mesg("parse_serial_command: no matches for: (1)");
@@ -128,8 +130,6 @@ void add_command_node(struct command_list_node* cln){
 // ECHO handler
 
 void serial_command_echo_handler(char* r_str,int index){
-	r_str[index] = ' '; // warnings
-
-	put_log_mesg(r_str);
+	put_log_mesg(r_str+index);
 	return;
 }
