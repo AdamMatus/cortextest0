@@ -42,25 +42,25 @@ int main(int argc, char *argv[]){
 
 	while(1){
 
-		if( read(fd, &c, sizeof(c)) < 0 ){
-			perror("read from serial port failed "); 
-			break;
+		if( (n = read(fd, &c, sizeof(c))) < 0 ){
+			if( !(errno == EAGAIN) ){
+				perror("read from serial port failed "); 
+				break;
+			}
 		}
-		else 
+		else{ 
 			s[i++] = c;
-
-		if(c=='\n') {
-			i = 0;
-			printf("%s",s);
-		}	
+			if(c==0) {
+				i = 0;
+				printf("%s",s);
+			}	
+		}
 
 		if( (n = read(STDIN_FILENO, &c, sizeof c)) < 0 ){
-			if( errno == EAGAIN )
-				continue; // no data to be read
-			else
+			if( !(errno == EAGAIN) )
 		  	perror("cannot read from stdin ");	
 		}
-		else if(n > 0){
+		else {
 			sin[j++] = c;
 			if(c=='\n'){
 				sin[j-1] = 0;
@@ -126,6 +126,11 @@ int tty_init(){
 	if(tcsetattr(fd, TCSAFLUSH, &config) <0) {
 		perror("failed to set termios struct to tty \n");
 	}
+
+	int flags =  fcntl(fd, F_GETFL, 0);
+	if( fcntl(fd, F_SETFL, flags | FNDELAY) <0 )
+		perror("failed to change tty atrb to no delay ");
+
 	
 	return fd;
 }

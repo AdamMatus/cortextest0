@@ -12,7 +12,7 @@ void config_usart(){
 	USART2 -> CR2 |= 0x00;
 	USART2 -> BRR = (104 << 4) | 3; // prescaler set to divide by 104,1875
 
-	USART2 ->CR1 |=  USART_CR1_TCIE + USART_CR1_RXNEIE +  USART_CR1_RE;
+	USART2 ->CR1 |=   USART_CR1_RXNEIE +  USART_CR1_RE; //USART_CR1_TCIE 
 }
 
 void put_log_mesg(char* mesg){
@@ -50,6 +50,14 @@ void put_log_mesg(char* mesg){
 		USART2 -> DR = *mesg;
 		mesg++;
 	}
+
+	while( !(USART2->SR & USART_SR_TXE) );
+	USART2 -> DR = 0;
+
+	while( !(USART2->SR & USART_SR_TC));
+	USART2 -> CR1 &= ~USART_CR1_TE;
+
+	return;
 }
 
 void USART2_IRQHandler()
@@ -57,10 +65,10 @@ void USART2_IRQHandler()
 
 	uint32_t stat_reg = USART2->SR ; 
 	// tx handling
-	if(stat_reg &  USART_SR_TC){
+	/*if(stat_reg &  USART_SR_TC){
 		USART2 -> DR = '\r';
 		USART2 -> CR1 &= ~USART_CR1_TE;
-	}
+	}*/
 
 
 	// rx handling
