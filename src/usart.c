@@ -1,6 +1,7 @@
 #include "usart.h"
 #include <string.h>
 
+const size_t SERIAL_PARSER_COMMAND_MAX_LENGTH = 32;
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
 unsigned int rs_index;
 static char received_string[128];
@@ -93,8 +94,8 @@ char* get_serial_mesg(){
 //
 
 void parse_serial_command(){
-	char r_str_word[32];	
-	strncpy(r_str_word, received_string, 32);
+	char r_str_word[SERIAL_PARSER_COMMAND_MAX_LENGTH];	
+	strncpy(r_str_word, received_string, SERIAL_PARSER_COMMAND_MAX_LENGTH);
 	struct command_list_node* cln = serial_command_list.last_cln;
 	if(!cln){
 		put_log_mesg("parse_serial_command: there is no command_list_node");
@@ -138,6 +139,13 @@ void add_command_node(struct command_list_node* cln){
 // ECHO handler
 
 void serial_command_echo_handler(char* r_str,int index){
-	put_log_mesg(r_str+index);
+	int original_index = index;
+	if(index < SERIAL_PARSER_COMMAND_MAX_LENGTH - 3 - 1){
+		while( r_str[++index] );
+		r_str[index++] = '\n';
+		r_str[index++] = '\r';
+		r_str[index++] = 0;
+	}
+	put_log_mesg(r_str+original_index);
 	return;
 }
