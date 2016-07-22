@@ -4,6 +4,7 @@
 
 #include "usart.h"
 #include "led.h"
+#include "gyro.h"
 
 void TIM1_UP_TIM10_IRQHandler();
 void put_log_mesg(char* mesg);
@@ -36,7 +37,7 @@ int main()
 	GPIOD -> AFR[0] |= 0x7 << 4*5 | 0x7 << 4*6;
 	// enable TIM1_UP_TIM10_IRQ
 	NVIC -> ISER[0] |= 1 << (TIM1_UP_TIM10_IRQn);
-	NVIC -> ISER[1] |= 1 << (USART2_IRQn - 8*sizeof(NVIC->ISER[0]));
+	NVIC -> ISER[USART2_IRQn/32] |= 1 << (USART2_IRQn%32);
 	//
 	//stop timers while in breakpoint in debug
   DBGMCU->APB2FZ |= DBGMCU_APB2_FZ_DBG_TIM10_STOP;
@@ -48,6 +49,14 @@ int main()
 	TIM10 -> EGR = 1; // generate update event
 	//
 	config_usart();
+
+	config_gyro();
+
+	//SPI GYRO connection test
+	if(gyro_read_id() == 0xD4)
+		put_log_mesg("SPI GYRO connectivity test succeed!\n");
+	else
+		put_log_mesg("SPI GYRO connectivity test failed! \n");
 
 	put_log_mesg("main loop starting in here\n\r"); 
 

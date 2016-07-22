@@ -1,5 +1,5 @@
 COMPILER=arm-none-eabi-gcc
-OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o
+OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o gyro.o
 
 DEVICE=STM32F429xx
 
@@ -28,11 +28,14 @@ startup_stm32f429xx.o : src/startup_stm32f429xx.s
 system_stm32f4xx.o : src/system_stm32f4xx.c
 	$(COMPILER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/system_stm32f4xx.c -o system_stm32f4xx.o 
 
-usart.o : src/usart.c
+usart.o : src/usart.c inc/usart.h
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/usart.c -o usart.o 
 
-led.o : src/led.c
+led.o : src/led.c inc/led.h
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/led.c -o led.o 
+
+gyro.o : src/gyro.c inc/gyro.h
+	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/gyro.c -o gyro.o 
 
 
 
