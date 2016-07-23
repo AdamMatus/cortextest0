@@ -72,6 +72,13 @@ int main()
 	serial_cln_led.next = NULL;
 	add_command_node(&serial_cln_led);
 
+	struct command_list_node serial_cln_gyro_read;
+	serial_cln_echo.chfp = serial_command_gyro_read_handler;
+	serial_cln_echo.command_pattern = "GYRO READ";
+	serial_cln_echo.next = NULL;
+	add_command_node(&serial_cln_gyro_read);
+	
+
 	while(1){
 		if(LOG_LED_FLAG & 0x01){
 			put_log_mesg("LEDS just TOOGLED! xD\n");
