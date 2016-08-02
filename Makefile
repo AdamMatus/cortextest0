@@ -34,7 +34,7 @@ usart.o : src/usart.c inc/usart.h
 led.o : src/led.c inc/led.h
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/led.c -o led.o 
 
-gyro.o : src/gyro.c inc/gyro.h
+gyro.o : src/gyro.c inc/gyro.h inc/L3GD20.h
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/gyro.c -o gyro.o 
 
 

@@ -1,5 +1,5 @@
 selectp -t 0 
-send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m  "vim src/main.c" C-m ":tabnew src/system_stm32f4xx.c" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f429xx.h" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include/core_cm4.h" C-m ":tabnew src/usart.c" C-m
+send-keys "cd ~/ACTUAL_CORTEX_PROJECT/" C-m  "vim src/main.c" C-m ":tabnew src/system_stm32f4xx.c" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f429xx.h" C-m ":tabnew ../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include/core_cm4.h" C-m ":tabnew src/usart.c" C-m ":tabnew inc/gyro.h" C-m ":split src/gyro.c" C-m ":resize -10" C-m
 
 splitw -h -p 40
 send-keys "sudo minicom"

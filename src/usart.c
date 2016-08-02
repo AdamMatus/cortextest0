@@ -1,17 +1,34 @@
 #include "usart.h"
-#include <string.h>
+#include "gyro.h"
+#include "led.h"
 
-const size_t SERIAL_PARSER_COMMAND_MAX_LENGTH = 32;
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
 unsigned int rs_index;
+
 static char received_string[128];
 
+struct command_list serial_command_list;
+static struct command_list_node serial_cln_echo;
+static struct command_list_node serial_cln_led; 
+static struct command_list_node serial_cln_gyro;
+
 void config_usart(){
+	//GPIOD clock enabling, USART2 clock enabling
+	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
+
+	// set USART2 TX/RX as pins' function
+	GPIOD -> MODER |= GPIO_MODER_MODER5_1 + GPIO_MODER_MODER6_1; 
+	GPIOD -> PUPDR |= GPIO_PUPDR_PUPDR5_0;
+	GPIOD -> OTYPER |= GPIO_OTYPER_OT_6; 
+	GPIOD -> AFR[0] |= 0x7 << 4*5 | 0x7 << 4*6;
+
 	RCC->APB1ENR |= RCC_APB1ENR_USART2EN;
 
 	USART2 -> CR1 |= USART_CR1_UE;
 	USART2 -> CR2 |= 0x00;
 	USART2 -> BRR = (104 << 4) | 3; // prescaler set to divide by 104,1875
+	
+	NVIC -> ISER[USART2_IRQn/32] |= 1 << (USART2_IRQn%32);
 
 	USART2 ->CR1 |=   USART_CR1_RXNEIE +  USART_CR1_RE; //USART_CR1_TCIE 
 }
@@ -51,9 +68,12 @@ void put_log_mesg(char* mesg){
 		USART2 -> DR = *mesg;
 		mesg++;
 	}
-
-	while( !(USART2->SR & USART_SR_TXE) );
-	USART2 -> DR = 0;
+	
+	char* str_end = "\n\r"; // \r\n\0
+	do{
+		while( !(USART2->SR & USART_SR_TXE) );
+		USART2 -> DR = *str_end;
+	} while(*str_end++);
 
 	while( !(USART2->SR & USART_SR_TC));
 	USART2 -> CR1 &= ~USART_CR1_TE;
@@ -93,11 +113,28 @@ char* get_serial_mesg(){
 // represent search node with string pattern
 //
 
-void parse_serial_command(){
-	char r_str_word[SERIAL_PARSER_COMMAND_MAX_LENGTH];	
-	strncpy(r_str_word, received_string, SERIAL_PARSER_COMMAND_MAX_LENGTH);
-	struct command_list_node* cln = serial_command_list.last_cln;
-	if(!cln){
+void serial_command_init(){
+
+	serial_cln_echo.chfp = serial_command_echo_handler;
+	serial_cln_echo.command_pattern = "ECHO";
+	serial_cln_echo.next = NULL;
+	add_command_node(&serial_command_list, &serial_cln_echo);
+
+	serial_cln_led.chfp = serial_command_led_handler;
+	serial_cln_led.command_pattern = "LED";
+	serial_cln_led.next = NULL;
+	add_command_node(&serial_command_list, &serial_cln_led);
+	
+	serial_cln_gyro.chfp = serial_command_gyro_handler;
+	serial_cln_gyro.command_pattern = "GYRO";
+	serial_cln_gyro.next = NULL;
+	add_command_node(&serial_command_list, &serial_cln_gyro);
+}
+
+void parse_serial_command(struct command_list* serial_command_list, char* r_str_word){
+
+	struct command_list_node* cln = serial_command_list->last_cln;
+ 	if(!cln){
 		put_log_mesg("parse_serial_command: there is no command_list_node");
 		return;
 	}
@@ -115,7 +152,7 @@ void parse_serial_command(){
 			continue;
 		}
 		else{
-			put_log_mesg("parse_serial_command: no matches for: (1)");
+			put_log_mesg("parse_serial_command: no matches for: ");
 			put_log_mesg(r_str_word);
 			return;
 		}
@@ -125,27 +162,22 @@ void parse_serial_command(){
 	return;
 }
 
-void add_command_node(struct command_list_node* cln){
-	if(serial_command_list.last_cln == NULL){
-		serial_command_list.last_cln = cln;
+void add_command_node(struct command_list* serial_command_list, struct command_list_node* cln){
+	if(serial_command_list->last_cln == NULL){
+		serial_command_list->last_cln = cln;
 		cln->next = NULL;
 	}
 	else{
-		cln->next = serial_command_list.last_cln;
-		serial_command_list.last_cln = cln;
+		cln->next = serial_command_list->last_cln;
+		serial_command_list->last_cln = cln;
 	}
 }
 
 // ECHO handler
 
 void serial_command_echo_handler(char* r_str,int index){
-	int original_index = index;
-	if(index < SERIAL_PARSER_COMMAND_MAX_LENGTH - 3 - 1){
-		while( r_str[++index] );
-		r_str[index++] = '\n';
-		r_str[index++] = '\r';
-		r_str[index++] = 0;
-	}
-	put_log_mesg(r_str+original_index);
+
+	put_log_mesg(r_str+index);
+
 	return;
 }
