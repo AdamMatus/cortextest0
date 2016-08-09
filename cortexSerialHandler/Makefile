@@ -8,7 +8,7 @@ serial.exe: $(OBJECTS)
 	$(CC) $(CFLAGS) -g -o serial.exe $(OBJECTS)
 
 main.o: $(SOURCES)
-	$(CC) -c -g $(CFLAGS) src/main.c 
+	$(CC) -c -g3 $(CFLAGS) src/main.c 
 
 clean: 
 	rm main.o serial.exe
