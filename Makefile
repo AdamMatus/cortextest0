@@ -1,5 +1,5 @@
 COMPILER=arm-none-eabi-gcc
-OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o gyro.o
+OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o gyro.o aux_tim.o
 
 DEVICE=STM32F429xx
 
@@ -9,7 +9,7 @@ CMSIS_DEVICE_INCLUDE=../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Device/ST/STM32F4x
 CMSIS_CORE_INCLUDE=../STM32Cube_FW_F4_V1.11.0/Drivers/CMSIS/Include
 LANG_VER=-std=gnu99
 
-deafult: test0 
+default: test0 
 
 test0: main.hex
 
@@ -37,7 +37,8 @@ led.o : src/led.c inc/led.h
 gyro.o : src/gyro.c inc/gyro.h inc/L3GD20.h
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/gyro.c -o gyro.o 
 
-
+aux_tim.o : src/aux_tim.c inc/aux_tim.h 
+	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/aux_tim.c -o aux_tim.o 
 
 clean :
 	rm $(OBJS)
