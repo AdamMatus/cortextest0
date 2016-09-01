@@ -1,16 +1,12 @@
 #include "usart.h"
 #include "gyro.h"
 #include "led.h"
+#include "aux_tim.h"
 
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
 unsigned int rs_index;
 
 static char received_string[128];
-
-struct command_list serial_command_list;
-static struct command_list_node serial_cln_echo;
-static struct command_list_node serial_cln_led; 
-static struct command_list_node serial_cln_gyro;
 
 void config_usart(){
 	//GPIOD clock enabling, USART2 clock enabling
@@ -69,7 +65,7 @@ void put_log_mesg(char* mesg){
 		mesg++;
 	}
 	
-	char* str_end = "\n\r"; // \r\n\0
+	char* str_end = "\r\n"; // \r\n\0
 	do{
 		while( !(USART2->SR & USART_SR_TXE) );
 		USART2 -> DR = *str_end;
@@ -113,8 +109,13 @@ char* get_serial_mesg(){
 // represent search node with string pattern
 //
 
-void serial_command_init(){
+struct command_list serial_command_list;
+static struct command_list_node serial_cln_echo;
+static struct command_list_node serial_cln_led; 
+static struct command_list_node serial_cln_gyro;
+static struct command_list_node serial_cln_aux_tim;
 
+void serial_command_init(){
 	serial_cln_echo.chfp = serial_command_echo_handler;
 	serial_cln_echo.command_pattern = "ECHO";
 	serial_cln_echo.next = NULL;
@@ -129,6 +130,11 @@ void serial_command_init(){
 	serial_cln_gyro.command_pattern = "GYRO";
 	serial_cln_gyro.next = NULL;
 	add_command_node(&serial_command_list, &serial_cln_gyro);
+
+	serial_cln_aux_tim.chfp = serial_command_aux_tim_handler;
+	serial_cln_aux_tim.command_pattern = "AUX TIM";
+	serial_cln_aux_tim.next = NULL;
+	add_command_node(&serial_command_list, &serial_cln_aux_tim);
 }
 
 void parse_serial_command(struct command_list* serial_command_list, char* r_str_word){
@@ -141,7 +147,7 @@ void parse_serial_command(struct command_list* serial_command_list, char* r_str_
 
 	int i = 0;
 	char *c = cln->command_pattern;
-	while(c[i]  != ' ' && c[i] != 0) {
+	while(c[i] != 0) {
 		if(c[i] == r_str_word[i]){
 			i++;
 			continue;

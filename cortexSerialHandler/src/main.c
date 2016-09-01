@@ -174,7 +174,7 @@ int main(int argc, char *argv[]){
 
 	atexit(&cleanup);
 
-	if(	init_print_unit(&gyro_print, 6, ".+:.+:.+ GYRO", "./log/GYRO.txt") < 0){
+	if(	init_print_unit(&gyro_print, 3, ".+:.+:.+ GYRO", "./log/GYRO.txt") < 0){
 		perror("init print unit failed: ");
 		exit(EXIT_FAILURE);
 	}
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]){
 			if(c==0) {
 				i = 0;
 				if(!parse_mesg(s))
-					//printf("%s",s)
+					printf("%s",s)
 						;
 				else
 					print_mesgs();
