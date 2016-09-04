@@ -16,6 +16,10 @@ static inline void disable_spi_transmission();
 static inline void gyro_spi_config();
 static inline void gyro_serial_command_init();
 
+static struct gyro_c_buff xbuffer, ybuffer, zbuffer;
+static struct gyro_c_buff* xyz_p[3] = {&xbuffer, &ybuffer, &zbuffer};
+
+static inline void read_xyz();
 
 void gyro_init(){
 	gyro_spi_config();
@@ -26,6 +30,10 @@ void gyro_init(){
 	GYRO_INT2_GPIO_CLOCK_EN_REG |= GYRO_INT2_RCC_EN_MASK;
 	//set direction of CS pin as intput 
 	GYRO_INT1_GPIO -> MODER |= 0x00 << GYRO_INT1_PIN;
+	GYRO_INT2_GPIO -> MODER |= 0x00 << GYRO_INT2_PIN;
+	//pull down int pins
+	GYRO_INT1_GPIO -> PUPDR |= 0x02 << GYRO_INT1_PIN;
+	GYRO_INT2_GPIO -> PUPDR |= 0x02 << GYRO_INT2_PIN;	
 	//drive CS_PIN to high
 	GYRO_CS_GPIO -> BSRR |= GYRO_CS_HIGH;
 	//SYSCFG clock on 
@@ -36,24 +44,37 @@ void gyro_init(){
 	// EXT1 and EXT2 conf
 	EXTI -> IMR  |= 1 << GYRO_INT1_EXTI_NUM | 1 << GYRO_INT2_EXTI_NUM;
 	EXTI -> RTSR |= 1 << GYRO_INT1_EXTI_NUM | 1 << GYRO_INT2_EXTI_NUM;
-	EXTI -> FTSR |= 1 << GYRO_INT1_EXTI_NUM;
 	gyro_serial_command_init();
 
 	/*** MODE INIT ***/
 	gyro_bypass_mode_init();
 	/***/
 
+	for(uint32_t i =0; i < 3; i++){
+		init_c_buff(xyz_p[i]);
+	}
+
 	//interrupt conf
 	NVIC->ISER[GYRO_INT1_IRQn/32] |= 0x01 << (GYRO_INT1_IRQn%32);
 	NVIC->ISER[GYRO_INT2_IRQn/32] |= 0x01 << (GYRO_INT2_IRQn%32);
+
+	//init read, necessery to make INT2/DTRDY go low
+	read_xyz();
 }
 
-void EXTI1_IRQHandler(){
-	gyro_single_read(GYRO_INT1_SRC);
-	EXTI -> PR &= 1 << GYRO_INT1_EXTI_NUM;
-}
 
 static uint32_t gyro_flags = 0;
+#define GYRO_FLAGS_OVER_THS 0x02
+
+void EXTI1_IRQHandler(){
+	uint16_t src_reg = gyro_single_read(GYRO_INT1_SRC); // its too long TODO
+	EXTI -> PR &= 1 << GYRO_INT1_EXTI_NUM;
+	if(src_reg & 0x2A)
+		gyro_flags |= GYRO_FLAGS_OVER_THS;
+//	else if(src_reg & 0x15)
+//	gyro_flags &= ~(GYRO_FLAGS_OVER_THS);
+}
+
 #define GYRO_FLAGS_DTRDY 0x01
 
 void EXTI2_IRQHandler(){
@@ -61,36 +82,41 @@ void EXTI2_IRQHandler(){
 	EXTI -> PR |= (1 << GYRO_INT2_EXTI_NUM);
 }
 
-static struct gyro_c_buff xbuffer, ybuffer, zbuffer;
-static struct gyro_c_buff* xyz_p[3] = {&xbuffer, &ybuffer, &zbuffer};
 
 void gyro_poll_fun(){
-	uint16_t gyro_data;
-		if(gyro_flags){
-			gyro_data  = 0xFF & gyro_single_read(GYRO_OUT_X_L);
-			gyro_data |= gyro_single_read(GYRO_OUT_X_H) << 8;
-			write_c_buff(&xbuffer, gyro_data);	
+	if(gyro_flags & GYRO_FLAGS_DTRDY){
 
-			gyro_data = 0xFF & gyro_single_read(GYRO_OUT_Y_L);
-			gyro_data |= gyro_single_read(GYRO_OUT_Y_H) << 8;
-			write_c_buff(&ybuffer, gyro_data);	
+		read_xyz();
 
-			gyro_data = 0xFF & gyro_single_read(GYRO_OUT_Z_L);
-			gyro_data |= gyro_single_read(GYRO_OUT_Z_H) << 8;
-			write_c_buff(&zbuffer, gyro_data);	
+		gyro_flags &= ~(GYRO_FLAGS_DTRDY);
+	}
 
-			gyro_flags &= ~(GYRO_FLAGS_DTRDY);
-		}
+	if(gyro_flags & GYRO_FLAGS_OVER_THS){
+		put_log_mesg("GYRO: Over threshold.");
+		gyro_flags &= ~(GYRO_FLAGS_OVER_THS);
+	}
 }
+static inline void read_xyz(){
+	uint16_t gyro_data = 0;
+	gyro_data  = 0xFF & gyro_single_read(GYRO_OUT_X_L);
+	gyro_data |= gyro_single_read(GYRO_OUT_X_H) << 8;
+	write_c_buff(&xbuffer, gyro_data);	
 
+	gyro_data = 0xFF & gyro_single_read(GYRO_OUT_Y_L);
+	gyro_data |= gyro_single_read(GYRO_OUT_Y_H) << 8;
+	write_c_buff(&ybuffer, gyro_data);	
+
+	gyro_data = 0xFF & gyro_single_read(GYRO_OUT_Z_L);
+	gyro_data |= gyro_single_read(GYRO_OUT_Z_H) << 8;
+	write_c_buff(&zbuffer, gyro_data);	
+}
 // strlen of (GYRO X:) = 7, magic number
 void gyro_print_xyz(){
 	char str[7+8*2+1+1] = "GYRO X:"; // 8*2 - max size of dec num, 1 for \n 1 for \0
 	
-	
 //	gyro_multiple_read(GYRO_STATUS_REG,test_arr, 4);
-	for(int i=1; i <= 3; i++){
-		itoa( (int16_t)read_c_buff(xyz_p[i]), str+7, 10);	//on str+len is '\0', 7 is magic
+	for(uint32_t i=0; i < 3; i++){
+		itoa( (int16_t)read_last_c_buff(xyz_p[i]), str+7, 10);	//on str+len is '\0', 7 is magic
 		size_t len = strlen(str); 
 		str[len] = 0;
 		put_log_mesg(str);
@@ -162,7 +188,7 @@ void gyro_bypass_mode_init(){
 	gyro_single_write(GYRO_INT1_THS_ZL, 0xFF);
 
 	gyro_single_write(GYRO_INT1_CFG, 0x2A); // OR interupt conf, XYZ higher
-	gyro_single_write(GYRO_CTRL_REG3, 0x00); // I1 enable, I2 DATARDY
+	gyro_single_write(GYRO_CTRL_REG3, 0x08); // I1 enable, I2 DATARDY //TODO
 	gyro_single_write(GYRO_INT1_DURATION, 0x0F); // int1 after 0xF * 1/ODR
 
 	gyro_single_write(GYRO_CTRL_REG1, 0x0F); // enable all axis in gyroscope, ODR 95Hz
@@ -233,16 +259,17 @@ inline void disable_spi_transmission(){
 // //TODO
 
 void init_c_buff(struct gyro_c_buff* buffp){
-	buffp->read_p = buffp->buff;	
-	buffp->write_p = buffp->buff;	
+	buffp->read_i = 0;	
+	buffp->write_i = 0;	
 }
 
 void write_c_buff(struct gyro_c_buff* buffp, uint16_t data){
-
+	buffp->buff[buffp->write_i] = data;
+	buffp->write_i = (buffp->write_i+1) & (GYRO_C_BUFF_SIZE - 1);
 }
 
-uint16_t read_c_buff(struct gyro_c_buff* bufp){
-
+uint16_t read_last_c_buff(struct gyro_c_buff* buffp){
+	return buffp->buff[(buffp->write_i-1) & (GYRO_C_BUFF_SIZE-1)];
 }
 
 // SERIAL HANDLERS

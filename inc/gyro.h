@@ -51,15 +51,15 @@
 #define GYRO_INT2_EXTI_NUM 2 
 #define GYRO_INT2_IRQn EXTI2_IRQn
 
-#define GYRO_C_BUFF_SIZE ( (size_t) 32 )
+#define GYRO_C_BUFF_SIZE ( (size_t) 32 ) // power of two
 struct gyro_c_buff {
 	uint16_t buff[GYRO_C_BUFF_SIZE];
-	uint16_t *read_p;
-	uint16_t *write_p;
+	uint16_t read_i;
+	uint16_t write_i;
 };
 void init_c_buff(struct gyro_c_buff* buffp);
 void write_c_buff(struct gyro_c_buff* buffp, uint16_t data);
-uint16_t read_c_buff(struct gyro_c_buff* bufp);
+uint16_t read_last_c_buff(struct gyro_c_buff* bufp);
 
 void gyro_bypass_mode_init();
 void gyro_init();
