@@ -66,7 +66,7 @@ void gyro_init(){
 static uint32_t gyro_flags = 0;
 #define GYRO_FLAGS_OVER_THS 0x02
 
-void EXTI1_IRQHandler(){
+void EXTI1_IRQHandler(){ //TODO
 	uint16_t src_reg = gyro_single_read(GYRO_INT1_SRC); // its too long TODO
 	EXTI -> PR &= 1 << GYRO_INT1_EXTI_NUM;
 	if(src_reg & 0x2A)
@@ -110,6 +110,7 @@ static inline void read_xyz(){
 	gyro_data |= gyro_single_read(GYRO_OUT_Z_H) << 8;
 	write_c_buff(&zbuffer, gyro_data);	
 }
+
 // strlen of (GYRO X:) = 7, magic number
 void gyro_print_xyz(){
 	char str[7+8*2+1+1] = "GYRO X:"; // 8*2 - max size of dec num, 1 for \n 1 for \0
@@ -256,7 +257,6 @@ inline void disable_spi_transmission(){
 }
 
 // CIRCULAR BUFF
-// //TODO
 
 void init_c_buff(struct gyro_c_buff* buffp){
 	buffp->read_i = 0;	
@@ -271,6 +271,11 @@ void write_c_buff(struct gyro_c_buff* buffp, uint16_t data){
 uint16_t read_last_c_buff(struct gyro_c_buff* buffp){
 	return buffp->buff[(buffp->write_i-1) & (GYRO_C_BUFF_SIZE-1)];
 }
+
+uint16_t read_c_buff(struct gyro_c_buff* buffp){
+
+	return 0;
+}	
 
 // SERIAL HANDLERS
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++
