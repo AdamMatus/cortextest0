@@ -8,6 +8,7 @@
 #include "led.h"
 #include "gyro.h"
 #include "L3GD20.h"
+#include "stm32f429I-disc-board-spi.h"
 
 void TIM1_UP_TIM10_IRQHandler();
 void put_log_mesg(char* mesg);
@@ -30,6 +31,8 @@ int main()
 	config_leds();
 
 	config_usart();
+
+	discf429_spi_config();
 
 	gyro_init();
 
