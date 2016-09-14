@@ -1,0 +1,9 @@
+gyro:
+problem_g01, status UNDONE
+	problem: while system is on run, after a while it is possible that INT2 signal from gyroscope is gone ( constantly high )
+
+	probably cause: while int interrupt routine that handles INT2 gyro signal by setting flag, main loop doesnt get to the appropriate code handling INT2 signal before another INT2 signal has come
+
+	solution: RTOS ||  Checking if overwritten on gyro || semaphore (signal counter) || handling signal in INT routine
+
+
