@@ -6,6 +6,7 @@
 
 #include "usart.h"
 #include "led.h"
+#include "lcd.h"
 #include "gyro.h"
 #include "L3GD20.h"
 #include "stm32f429I-disc-board-spi.h"
@@ -35,6 +36,8 @@ int main()
 	discf429_spi_config();
 
 	gyro_init();
+
+	lcd_init();
 
 	serial_command_init();
 

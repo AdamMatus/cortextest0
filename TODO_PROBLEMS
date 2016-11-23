@@ -6,4 +6,8 @@ problem_g01, status UNDONE
 
 	solution: RTOS ||  Checking if overwritten on gyro || semaphore (signal counter) || handling signal in INT routine
 
+lcd spi:
+stwitching between spi mode for gyro and lcd
+cannot configure both lcd and gyro at once
 
+probablu cause: dont know

@@ -204,34 +204,34 @@ int main(int argc, char *argv[]){
 			s[i++] = c;
 			if(c==0) {
 				i = 0;
-				if(!parse_mesg(s))
-					printf("%s",s)
-						;
-				else
+				struct print_unit *pu;
+				if(!(pu = parse_mesg(s)))
+					printf("%s",s);
+				else if( pu->next_print_index == 0 )
 					print_mesgs();
-			}	
-		}
+			}
 
-		if( (n = read(STDIN_FILENO, &c, sizeof c)) < 0 ){
-			if( !(errno == EAGAIN) )
-		  	perror("cannot read from stdin ");	
-		}
-		else {
-			sin[j++] = c;
-			if(c=='\n'){
-				sin[j-1] = 0;
-				j = 0;
+			if( (n = read(STDIN_FILENO, &c, sizeof c)) < 0 ){
+				if( !(errno == EAGAIN) )
+					perror("cannot read from stdin ");	
+			}
 
-				if(!(strcmp(sin,"EXIT")))
-					exit(EXIT_SUCCESS);
+			else {
+				sin[j++] = c;
+				if(c=='\n'){
+					sin[j-1] = 0;
+					j = 0;
 
-				if( write_line(fd, sin) <0 )
-					perror("Failed to send a line ");
-				else
-					printf("%s%s%s","Message: \"",sin,"\" has been sent to the target.\n");
+					if(!(strcmp(sin,"EXIT")))
+						exit(EXIT_SUCCESS);
+
+					if( write_line(fd, sin) <0 )
+						perror("Failed to send a line ");
+					else
+						printf("%s%s%s","Message: \"",sin,"\" has been sent to the target.\n");
+				}
 			}
 		}
-
 	}
 
 	close(fd);	

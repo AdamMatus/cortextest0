@@ -23,6 +23,9 @@ static inline void read_xyz();
 
 void gyro_init(){
 
+	//configure gyro-spi mode
+	discf429_spi_gyro_mode_set();
+
 	//**CS BIT INIT**
 	//clock on
 	GYRO_CS_GPIO_CLOCK_EN_REG |= GYRO_CS_RCC_EN_MASK;
@@ -35,7 +38,7 @@ void gyro_init(){
 	//clock on
 	GYRO_INT1_GPIO_CLOCK_EN_REG |= GYRO_INT1_RCC_EN_MASK;
 	GYRO_INT2_GPIO_CLOCK_EN_REG |= GYRO_INT2_RCC_EN_MASK;
-	//set direction of CS pin as intput 
+	//set direction of  INT pins as intput 
 	GYRO_INT1_GPIO -> MODER |= 0x00 << GYRO_INT1_PIN;
 	GYRO_INT2_GPIO -> MODER |= 0x00 << GYRO_INT2_PIN;
 	//pull down int pins

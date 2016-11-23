@@ -1,5 +1,5 @@
 COMPILER=arm-none-eabi-gcc
-OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o gyro.o aux_tim.o stm32f429I-disc-board-spi.o
+OBJS=main.o startup_stm32f429xx.o system_stm32f4xx.o usart.o led.o gyro.o aux_tim.o stm32f429I-disc-board-spi.o lcd.o
 
 DEVICE=STM32F429xx
 
@@ -42,6 +42,10 @@ aux_tim.o : src/aux_tim.c inc/aux_tim.h
 
 stm32f429I-disc-board-spi.o : src/stm32f429I-disc-board-spi.c inc/stm32f429I-disc-board-spi.h 
 	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/stm32f429I-disc-board-spi.c -o stm32f429I-disc-board-spi.o
+
+
+lcd.o : src/lcd.c inc/lcd.h
+	$(COMPILER) $(LANG_VER) -Wall -mcpu=cortex-m4 -mlittle-endian -mthumb -I $(CMSIS_CORE_INCLUDE) -I $(CMSIS_DEVICE_INCLUDE) -I $(USER_INCLUDE) -D $(DEVICE) -Os -g3 -c src/lcd.c -o lcd.o
 
 clean :
 	rm $(OBJS)

@@ -1,6 +1,7 @@
 #include "usart.h"
 #include "gyro.h"
 #include "led.h"
+#include "lcd.h"
 #include "aux_tim.h"
 
 const uint16_t LOG_TIME_SIZE_FORMAT = 9; 
@@ -114,6 +115,7 @@ static struct command_list_node serial_cln_echo;
 static struct command_list_node serial_cln_led; 
 static struct command_list_node serial_cln_gyro;
 static struct command_list_node serial_cln_aux_tim;
+static struct command_list_node serial_cln_lcd;
 
 void serial_command_init(){
 	serial_cln_echo.chfp = serial_command_echo_handler;
@@ -135,6 +137,11 @@ void serial_command_init(){
 	serial_cln_aux_tim.command_pattern = "AUX TIM";
 	serial_cln_aux_tim.next = NULL;
 	add_command_node(&serial_command_list, &serial_cln_aux_tim);
+
+	serial_cln_lcd.chfp = serial_command_lcd_handler;
+	serial_cln_lcd.command_pattern = "LCD";
+	serial_cln_lcd.next = NULL;
+	add_command_node(&serial_command_list, &serial_cln_lcd);
 }
 
 void parse_serial_command(struct command_list* serial_command_list, char* r_str_word){
